@@ -94,4 +94,63 @@ public class TransactionPropagationExampleImplDataSource1Test {
         transactionPropagationDataSource1Example.notransaction_exception_required_required();
     }
 
+    /**
+     * 结果： 张三（插入），李四（未插入） </br>
+     *
+     * 外围方法没有事务，插入“张三”、“李四”方法都在自己的事务中独立运行，所以插入“李四”方法抛出异常只会回滚插入“李四”方法，插入“张三”方法不受影响。
+     */
+    @Test
+    public void testNoTransaction_required_required_exception() {
+        transactionPropagationDataSource1Example.notransaction_required_required_exception();
+    }
+
+    /**
+     * 结果： 张三（未插入）， 李四（未插入）</br>
+     *
+     * 外围方法开启事务，插入“张三”、“李四”方法都在外围方法的事务中运行，加入外围方法事务，所以三个方法同一个事务。
+     * 外围方法或内部方法抛出异常，整个事务全部回滚。
+     */
+    @Test
+    public void testTransaction_exception_required_required() {
+        transactionPropagationDataSource1Example.transaction_exception_required_required();
+    }
+
+    /**
+     * 结果： 张三（未插入）、李四（未插入） </br>
+     *
+     * 外围方法开启事务，插入“张三”、“李四”方法都在外围方法的事务中运行，加入外围方法事务，所以三个方法同一个事务。
+     * 外围方法或内部方法抛出异常，整个事务全部回滚。
+     */
+    @Test
+    public void testTransaction_required_required_exception() {
+        transactionPropagationDataSource1Example.transaction_required_required_exception();
+    }
+
+    /**
+     * 结果： 张三（未插入）， 李四（未插入） </br>
+     *
+     * 外围方法开启事务，插入“张三”、“李四”方法都在外围方法的事务中运行，加入外围方法事务，所以三个方法同一个事务。外围方法或内部方法抛出异常，
+     * 整个事务全部回滚。虽然我们catch了插入“李四”方法的异常，使异常不会被外围方法感知，但是插入“李四”方法事务被回滚，内部方法和外围方法属于同一个事务，
+     * 所以整体事务被回滚了。并且这个方法会抛出这个异常：
+     * org.springframework.transaction.UnexpectedRollbackException: Transaction rolled back because it has been marked as rollback-only
+     */
+    @Test
+    public void testTransaction_required_required_exception_try(){
+        transactionPropagationDataSource1Example.transaction_required_required_exception_try();
+    }
+
+    /**
+     * PROPAGATION_SUPPORTS 支持当前事务，如果当前没有事务，就以非事务方式执行。
+     *
+     * 结果： 张三（插入），李四（插入） </br>
+     * 外围方法未开启事务，插入“张三”、“李四”方法也均未开启事务，因为不存在事务所以无论外围方法或者内部方法抛出异常都不会回滚。
+     *
+     * 不开启事务时，数据源的提交方式模式为true,自动提交的，即SQL执行完就自动提交了。
+     * 可以看 @author why技术 的 这篇文章《当Transactional碰到锁，有个大坑，要小心。》 https://juejin.cn/post/6999856083208503333
+     */
+    @Test
+    public void testNotransaction_supports_supports_exception() {
+        transactionPropagationDataSource1Example.notransaction_supports_supports_exception();
+    }
+
 }
