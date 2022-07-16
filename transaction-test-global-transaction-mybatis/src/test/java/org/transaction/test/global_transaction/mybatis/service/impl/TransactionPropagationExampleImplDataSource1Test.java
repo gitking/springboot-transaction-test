@@ -153,4 +153,240 @@ public class TransactionPropagationExampleImplDataSource1Test {
         transactionPropagationDataSource1Example.notransaction_supports_supports_exception();
     }
 
+    /**
+     * 结果：张三(插入)，李四（插入） </br>
+     * 外围方法未开启事务，插入“张三”、“李四”方法也均未开启事务，因为不存在事务所以无论外围方法或者内部方法抛出异常都不会回滚。
+     */
+    @Test
+    public void testNotransaction_exception_supports_spports() {
+        transactionPropagationDataSource1Example.notransaction_exception_supports_supports();
+    }
+
+    /**
+     * 结果： 张三（未插入），李四（未插入）</br>
+     * 外围方法开启事务，插入“张三”、“李四”方法都在外围方法的的事务中运行，加入外围方法事务，所以三个方法在同一个事务。外围方法或者内部方法抛出异常，
+     * 整个事务全部回滚。
+     */
+    @Test
+    public void testTransaction_supports_supports_exception() {
+        transactionPropagationDataSource1Example.transaction_supports_supports_exception();
+    }
+
+    /**
+     * 结果：张三（未插入），李四（未插入）</br>
+     *
+     * 外围方法开启事务，插入“张三”，“李四”方法都在外围方法的事务中运行，加入外围方法事务，所以三个方法同一个事务。外围方法或内部方法抛出异常，
+     * 整个事务全部回滚。
+     */
+    @Test
+    public void testTransaction_exception_supports_supports() {
+        transactionPropagationDataSource1Example.transaction_exception_supports_supports();
+    }
+
+    //-------------------------------------------------------------------------------------
+    // REQUIRED和SUPPORTS在外围方法支持事务的时候没有区别，均加入外围方法的事务中。
+    // 当外围方法不支持事务，REQUIRED开启新的事务而SUPPORTS不开启事务
+    // REQUIRED的事务一定和外围方法事务统一。如果外围方法没有事务，每一个内部REQUIRED方法都会开启一个新的事务，互不干扰。
+    //---------------------------------------------------------------------------------------
+
+    /**
+     * PROPAGATION_REQUIRES_NEW 	新建事务，如果当前存在事务，把当前事务挂起。
+     * 结果：张三（插入），李四（插入）</br>
+     *
+     * 外围方法未开启事务，插入“张三”，“李四”方法都在自己的事务中独立运行。外围方法抛出异常，插入“张三”，“李四”事务均不回滚。
+     */
+    @Test
+    public void testNotransaction_exception_requiresNew_requiresNew() {
+        transactionPropagationDataSource1Example.notransaction_exception_requiresNew_requiresNew();
+    }
+
+    /**
+     * 结果：张三（插入），李四（未插入） </br>
+     *
+     * 外围方法未开启事务，插入“张三”，“李四”方法都在自己的事务中独立运行。插入“李四”方法抛出异常只会导致插入“李四”方法中的事务被回滚，
+     * 不会影响插入“张三”方法的事务。
+     */
+    @Test
+    public void testNotransaction_requiresNew_requiresNew_exception() {
+        transactionPropagationDataSource1Example.notransaction_requiresNew_requiresNew_exception();
+    }
+
+    /**
+     * 结果： 张三（未插入）， 李四（插入），王五（插入） </br>
+     *
+     * 外围方法开启事务，插入“张三”方法和外围方法一个事务，插入“李四”方法，插入“王五”方法分别在独立的新建事务中，
+     * 外围方法抛出异常只回滚和外围方法同一事务的方法，故插入“张三”的方法回滚。
+     */
+    @Test
+    public void testTransaction_exception_required_requiresNew_requiresNew() {
+        transactionPropagationDataSource1Example.transaction_exception_required_requiresNew_requiresNew();
+    }
+
+    /**
+     * 结果：张三（未插入），李四（插入），王五（未插入） </br>
+     *
+     * 外围方法开启事务，插入“张三”方法和外围方法一个事务，插入“李四”方法，插入“王五”方法分别在独立的新建事务中。插入“王五”方法抛出异常，首先插入
+     * “王五”方法的事务被回滚，异常继续抛出被外围方法感知，外围方法事务亦被回滚，故插入“张三”方法也被回滚。
+     */
+    @Test
+    public void testTransaction_requires_requiresNew_requiresNew_exception() {
+        transactionPropagationDataSource1Example.transaction_required_requiresNew_requiresNew_exception();;
+    }
+
+    /**
+     * 结果：张三（插入），李四（插入），王五（未插入） </br>
+     *
+     * 外围方法开启事务，插入“张三”方法和外围方法一个事务，插入“李四”方法，插入“王五”方法分别在独立的新建事务中。插入“王五”方法抛出异常，首先插入“王五”方法的事务
+     * 被回滚，异常被Catch不会被外围方法感知，外围方法事务不回滚。故插入“张三”方法插入成功。
+     */
+    @Test
+    public void testTransaction_required_requiresNew_requiresNew_exception_try() {
+        transactionPropagationDataSource1Example.transaction_required_requiresNew_requiresNew_exception_try();
+    }
+    //----------------------------------------------------------------------------------------------------
+    // REQUIRES_NEW标注方法无论外围方法是否开启事务，内部REQUIRES_NEW方法均会开启独立事务，且和外围方法也不在同一个事务中，内部方法和外围方法、内部方法之间均不互相干扰。
+    // 当外围方法不开启事务的时候，REQUIRED和REQUIRES_NEW标注的内部方法效果相同。
+    // ------------------------------------------------------------------------------------------------------
+
+    /**
+     * PROPAGATION_NOT_SUPPORTED 	以非事务方式执行操作，如果当前存在事务，就把当前事务挂起。
+     * 结果：张三（插入），李四（插入），王五（插入） </br>
+     *
+     * 外围方法未开启事务，插入“张三”方法在自己的事务中运行，插入“李四”方法不在任何事务中运行。外围方法抛出异常，但是外围方法没有事务，
+     * 所以其他内部事务方法不会被回滚，非事务方法更不会被回滚。
+     */
+    @Test
+    public void testNotransaction_exception_required_notSupported() {
+        transactionPropagationDataSource1Example.notransaction_exception_required_notSupport();
+    }
+
+    /**
+     * 结果：张三（插入），李四（插入），王五（插入） </br>
+     *
+     * 外围方法未开启事务，插入“张三”方法在自己的事务中运行，插入“李四”方法不在任何事务中运行。
+     * 插入“李四”方法抛出异常，首先因为插入“李四”方法没有开启事务，所以“李四”方法不会回滚，外围方法感知异常。但是因为外围方法没有事务，所以外围方法也不会被回滚。
+     */
+    @Test
+    public void testNotransaction_required_notSupported_exception() {
+        transactionPropagationDataSource1Example.notransaction_required_notSupport_exception();
+    }
+
+    /**
+     * 结果： 张三（未插入）， 李四（插入），王五（插入） </br>
+     *
+     * 外围方法开启事务，因为插入“张三”方法传播为required，所以和外围方法同一个事务。插入“李四”方法不在任何事务中运行。
+     * 外围方法抛出异常，外围方法所在的事务将会被回滚。因为插入“张三”方法和外围方法同一个事务，所以将会回滚。
+     */
+    @Test
+    public void testTransaction_exception_required_notSupported() {
+        transactionPropagationDataSource1Example.transaction_exception_required_notSuppored();
+    }
+
+    /**
+     * 结果：张三（未插入），李四（插入） </br>
+     *
+     * 外围方法开启事务，因为插入“张三”方法传播为required，所以和外围方法同一个事务。插入“李四”方法不在任何事务中运行。
+     * 插入“李四”方法抛出异常，因为此方法不开启事务，所以此方法不会被回滚，外围方法接收到了异常，所以外围事务需要回滚，因插入“张三”方法和外围方法
+     * 同一事务，故被回滚。
+     */
+    @Test
+    public void testTransaction_required_notSupported_excepton() {
+        transactionPropagationDataSource1Example.transaction_required_notSupported_exception();
+    }
+    //----------------------------------------------------------------------------
+    // NOT_SUPPORTED明确表示不开启事务。
+    //----------------------------------------------------------------------------
+
+    /**
+     * PROPAGATION_MANDATORY 	使用当前的事务，如果当前没有事务，就抛出异常。
+     * 结果： 张三（未插入） </br>
+     * 外围方法未开启事务。内部“张三”方法执行的时候因为外围没有事务而直接抛出异常，具体插入方法都没有机会执行。
+     */
+    @Test
+    public void testNotransaction_mandatory() {
+        transactionPropagationDataSource1Example.notransaction_mandatory();
+    }
+
+    /**
+     * 结果：张三（未插入），李四（未插入）</br>
+     *
+     * 外围方法开启事务，插入“张三”方法和插入“李四”方法都加入外围方法事务，外围方法抛出异常，事务回滚。
+     */
+    @Test
+    public void testTransaction_exception_mandatory_mandatory() {
+        transactionPropagationDataSource1Example.transaction_exception_mandatory_mandatory();
+    }
+
+    /**
+     * 结果： 张三（未插入），李四（未插入）</br>
+     *
+     * 外围方法开启事务，插入“张三”方法和插入“李四”方法都加入外围方法事务，内部方法抛出异常，整个事务回滚。
+     */
+    @Test
+    public void testTransaction_mandatory_mandatory_exception() {
+        transactionPropagationDataSource1Example.transaction_mandatory_mandatory_exception();
+    }
+
+    /**
+     * PROPAGATION_NEVER 	以非事务方式执行，如果当前存在事务，则抛出异常。
+     *
+     * 结果：张三（未插入）</br>
+     * 外围方法开启事务。内部插入“张三”方法执行的时候因为外围有事务而直接抛出异常，具体插入方法都没有机会执行。
+     */
+    @Test
+    public void testTransaction_never() {
+        transactionPropagationDataSource1Example.transaction_never();
+    }
+
+    /**
+     * 结果： 张三（插入），李四（插入）</br>
+     *
+     * 外围方法没有开启事务，插入“张三”方法和插入“李四”方法也均无事务，任何异常都不会回滚。
+     */
+    @Test
+    public void testNotransaction_exception_never_never() {
+        transactionPropagationDataSource1Example.notransaction_exception_never_never();
+    }
+
+    /**
+     * 结果：张三（插入），李四（插入）</br>
+     *
+     * 外围方法未开启事务，插入“张三”方法和插入“李四”方法也均无事务，任何异常都不会回滚。
+     */
+    @Test
+    public void testNotransaction_never_never_exception() {
+        transactionPropagationDataSource1Example.notransaction_never_never_exception();
+    }
+
+    /**
+     * PROPAGATION_NESTED 	如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则执行与PROPAGATION_REQUIRED类似的操作。
+     * 结果： 张三（插入）， 李四（插入）</br>
+     *
+     * 外围方法开启事务，插入“张三”方法和插入“李四”方法为外围方法的子事务，外围方法事务回滚，相应的子事务也会回滚。
+     */
+    @Test
+    public void testTransaction_exception_nested_nested() {
+        transactionPropagationDataSource1Example.transaction_exception_nested_nested();
+    }
+
+    /**
+     * 结果：张三（未插入），李四（未插入）</br>
+     *
+     * 外围方法开启事务，插入“张三”方法和插入“李四”方法为外围方法的子事务，插入“李四”方法抛出异常，相应的子事务回滚，异常被外围方法感知，
+     * 外围方法事务回滚，其他子事务即插入“张三”方法事务也回滚了。
+     */
+    @Test
+    public void testTransaction_nested_nested_exception() {
+        transactionPropagationDataSource1Example.transaction_nested_nested_exception();
+    }
+
+    /**
+     * 结果：张三（插入），李四（未插入）</br>
+     * 外围方法开启事务，插入“张三”方法和插入“李四”方法为外围方法的子事务，插入“李四”方法抛出异常，相应的子事务回滚，异常被捕获外围方法不可知，
+     * 故外围方法事务无需回滚。
+     */
+    @Test
+    public void testTransaction_nested_nested_exceptin_try() {
+        transactionPropagationDataSource1Example.transaction_nested_nested_exception_try();
+    }
 }

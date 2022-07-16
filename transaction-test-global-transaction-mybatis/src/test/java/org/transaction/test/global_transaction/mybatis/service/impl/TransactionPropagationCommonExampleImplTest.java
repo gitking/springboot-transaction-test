@@ -34,6 +34,23 @@ public class TransactionPropagationCommonExampleImplTest {
         transactionPropagationCommonExampleExample.truncated();
     }
 
+
+    /**
+     * 结果： 张三（插入），李四（插入） </br>
+     */
+    @Test
+    public void testNotransaction_exception_notransaction_notransaction() {
+        transactionPropagationCommonExampleExample.notransaction_exception_notransaction_notransaction();
+    }
+
+    /**
+     * 结果：张三（插入），李四（插入）</br>
+     */
+    @Test
+    public void testNotransaction_notransaction_notransaction_exception() {
+        transactionPropagationCommonExampleExample.notransaction_notransaction_notransaction_exception();
+    }
+
     /**
      * 结果: 张三(未插入), 李四(插入) </br>
      *
@@ -57,4 +74,19 @@ public class TransactionPropagationCommonExampleImplTest {
     // ————————————————————————————————————————————————————————————————————————————————
     // 由上可知，在多数源的情况下，我们对哪个数据源开启事务，事务使用情况就可以和单数据源事务的情况一致，未开启事务的数据源可当做不支持事务处理，在事务的各种情况中不做考虑。
     // ————————————————————————————————————————————————————————————————————————————————
+
+    // ————————————————————————————————————————————————————————————————————————————————
+    // 以下内容均为测试，结果可以根据单数据源的情况推测
+    // ————————————————————————————————————————————————————————————————————————————————
+
+    /**
+     * 结果：张三（未插入），李四（插入）</br>
+     *
+     * 应该是我猜的，多数据源的情况下，外围方法开启事务，“张三”方法加入外围方法事务，“李四”方法没有跟“张三”公用一个事务，因为不是一个数据源。
+     * 所以，“李四”方法抛出异常，被外围方法感知，外围方法事务回滚，“张三”也被回滚了。但是“李四”方法用的自己独立的数据源，没有开启事务，即使“李四”方法抛出异常，“李四”也不会被回滚。
+     */
+    @Test
+    public void testTransaction_notransaction_notransaction_exception() {
+        transactionPropagationCommonExampleExample.transaction_notransaction_notransaction_exception();
+    }
 }
