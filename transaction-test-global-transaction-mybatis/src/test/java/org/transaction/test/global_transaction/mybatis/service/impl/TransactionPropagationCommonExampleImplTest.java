@@ -84,6 +84,9 @@ public class TransactionPropagationCommonExampleImplTest {
      *
      * 应该是我猜的，多数据源的情况下，外围方法开启事务，“张三”方法加入外围方法事务，“李四”方法没有跟“张三”公用一个事务，因为不是一个数据源。
      * 所以，“李四”方法抛出异常，被外围方法感知，外围方法事务回滚，“张三”也被回滚了。但是“李四”方法用的自己独立的数据源，没有开启事务，即使“李四”方法抛出异常，“李四”也不会被回滚。
+     *
+     * 在transaction_notransaction_notransaction_exception方法上面指定使用数据源2，那结果就会变成张三（插入），李四（未插入）了。
+     * 所以根据结果反推，在多数据源情况下，@Transactional 这个注解默认对在执行的过程中碰到的第一个数据源生效。可以看下源码，TODO
      */
     @Test
     public void testTransaction_notransaction_notransaction_exception() {
