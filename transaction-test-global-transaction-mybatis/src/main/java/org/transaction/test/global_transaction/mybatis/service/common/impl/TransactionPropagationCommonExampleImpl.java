@@ -306,9 +306,13 @@ public class TransactionPropagationCommonExampleImpl implements TransactionPropa
         user1.setName("张三");
         user1ServiceDataSource1.addRequired(user1);
 
-        DataSource1User1 user12 = new DataSource1User1();
-        user12.setName("李四");
-        user1ServiceDataSource1.addRequiresNew(user12);
+//        DataSource1User1 user12 = new DataSource1User1();
+//        user12.setName("李四");
+//        user1ServiceDataSource1.addRequiresNew(user12);
+
+        DataSource2User2 user2 = new DataSource2User2();
+        user2.setName("李四");
+        user2ServiceDataSource2.addRequiresNew(user2);
 
         DataSource2User2 user21 = new DataSource2User2();
         user21.setName("王五");
