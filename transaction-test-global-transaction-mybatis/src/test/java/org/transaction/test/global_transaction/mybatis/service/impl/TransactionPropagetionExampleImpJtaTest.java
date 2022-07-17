@@ -296,6 +296,18 @@ public class TransactionPropagetionExampleImpJtaTest {
         transactionPropagationCommonExampleExample.transaction_exception_required_requiresNew_requiresNew();
     }
 
+    /**
+     * 结果：张三（未插入），李四（插入），王五（未插入）</br>
+     *
+     * 外围方法开启事务，插入“张三”方法和外围方法一个事务，插入“李四”方法、插入“王五”方法分别在独立的新建事务中。插入“王五”方法抛出异常，首先插入
+     * “王五”方法的事务被回滚，异常继续抛出被外围方法感知，外围方法事务亦被回滚，故插入“张三”方法也被回滚。
+     * 这个方法也报错：org.springframework.transaction.TransactionSuspensionNotSupportedException:
+     * JtaTransactionManager needs a JTA TransactionManager for suspending a transaction: specify the 'transactionManager' or 'transactionManagerName' property
+     */
+    @Test
+    public void testTransaction_required_requiresNew_requiresNew_exception() {
+        transactionPropagationCommonExampleExample.transaction_required_requiresNew_requiresNew_exception();
+    }
 
 
 
