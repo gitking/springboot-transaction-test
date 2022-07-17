@@ -1,8 +1,8 @@
 package com.itranswarp.learnjava.jdbcpool;
 
 import com.itranswarp.learnjava.Student;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
+//import com.zaxxer.hikari.HikariConfig;
+//import com.zaxxer.hikari.HikariDataSource;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -66,16 +66,16 @@ public class Main {
 
 
     public static void main(String[] args) throws SQLException {
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(mySQL8jdbcUrl);
-        config.setUsername(jdbcUsername);
-        config.setPassword(jdbcPassword);
-        config.addDataSourceProperty("cachePrepStms", "true");
-        config.addDataSourceProperty("prepStmtCaheSize", "100");
-        config.addDataSourceProperty("maximumPoolSize", "10");
-        DataSource ds = new HikariDataSource(config);
-        List<Student> studentList = queryStudents(ds);
-        studentList.forEach(System.out::println);
+//        HikariConfig config = new HikariConfig();
+//        config.setJdbcUrl(mySQL8jdbcUrl);
+//        config.setUsername(jdbcUsername);
+//        config.setPassword(jdbcPassword);
+//        config.addDataSourceProperty("cachePrepStms", "true");
+//        config.addDataSourceProperty("prepStmtCaheSize", "100");
+//        config.addDataSourceProperty("maximumPoolSize", "10");
+//        DataSource ds = new HikariDataSource(config);
+//        List<Student> studentList = queryStudents(ds);
+//        studentList.forEach(System.out::println);
     }
 
     static List<Student> queryStudents(DataSource ds) throws SQLException {

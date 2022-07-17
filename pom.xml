@@ -49,12 +49,12 @@
         <!--
             https://www.liaoxuefeng.com/wiki/1252599548343744/1321748528103458
             为了练习廖雪峰的这个才引入HikariCP，如果有冲突可以去掉这个jar包
-        -->
+
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
             <version>${hikaricp.version}</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>

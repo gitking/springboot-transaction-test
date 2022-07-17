@@ -1,0 +1,24 @@
+https://zhuanlan.zhihu.com/p/371161553#:~:text=%E6%A0%B9%E6%8D%AE%E5%89%8D%E9%9D%A2%E7%9A%84%E5%88%86%E6%9E%90%EF%BC%8C%E5%AF%BC%E8%87%B4%E2%80%9CPublic%20Key%20Retrieval,is%20not%20allowed%E2%80%9D%E4%B8%BB%E8%A6%81%E6%98%AF%E7%94%B1%E4%BA%8E%E5%BD%93%E7%A6%81%E7%94%A8SSL%2FTLS%E5%8D%8F%E8%AE%AE%E4%BC%A0%E8%BE%93%E5%90%8E%EF%BC%8C%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BC%9A%E4%BD%BF%E7%94%A8%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84%E5%85%AC%E9%92%A5%E8%BF%9B%E8%A1%8C%E4%BC%A0%E8%BE%93%EF%BC%8C%E9%BB%98%E8%AE%A4%E6%83%85%E5%86%B5%E4%B8%8B%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%B8%8D%E4%BC%9A%E4%B8%BB%E5%8A%A8%E5%8E%BB%E6%89%BE%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%8B%BF%E5%85%AC%E9%92%A5%EF%BC%8C%E6%AD%A4%E6%97%B6%E5%B0%B1%E4%BC%9A%E5%87%BA%E7%8E%B0%E4%B8%8A%E8%BF%B0%E9%94%99%E8%AF%AF%E3%80%82
+MySQL 8.0的Public Key Retrival错误，毫无规律可言怎么破？
+dbaplus社群  已认证帐号
+作者介绍
+农行研发中心“数风云”团队，一支朝气蓬勃、快速成长的技术团队，始终致力于农行大数据、数据库和云计算等领域的应用实践与技术创新，探索数据赋能，勇攀数据云巅，为企业数字化转型和金融科技发展不断贡献力量。
+一、背景介绍
+近期笔者所在部门在使用MySQL时，经常会出现如下错误，且这个错误并不会一直出现，属于某种偶发性的错误：
+
+笔者所在部门的连接数据库的方法有JDBC、JDBCTemplate、C3P0连接池和Druid连接池等技术，在这些连接实现方法上笔者都观察到出现过上述的错误。该错误有一定的特性，就是偶尔会出现该错误，该错误并不会一直出现，该错误的出现没有明显的规律。而且笔者发现，底层使用JDBC连接驱动的情况下，无论上层是采用何种数据源实现技术，笔者的部门都发现会报上述错误。
+针对上述错误，在笔者所在部门的软硬件环境下，笔者对MySQL为何会产生这个问题、这个问题产生的条件、MySQL官方文档对这个问题的阐述、如何有效避免与解决这个问题等方面在本文进行了详细的分析与解释。希望能够帮助到真正遇到这个问题的DBA与开发人员。
+笔者所在部门使用的MySQL版本为8.0.18版本，MySQL使用组复制技术保证高可用，即MySQL Group Replication（MGR）。笔者复现问题以及实验的架构如下图所示：
+在使用JDBC连接时，可能会出现“Public Key Retrieval is not allowed”的错误，从错误的Java堆栈信息中可以看出，该错误是在JDBC与MySQL建立Connection对象时出现的，该错误的错误堆栈如下图所示：
+在使用C3P0连接池时，也会出现“Public Key Retrieval is not allowed”的错误，从错误的Java堆栈信息中可以看出，该错误仍是在JDBC与MySQL建立Connection对象时出现，该错误会导致C3P0连接池在初始化时失败，该错误的错误堆栈如下图所示：
+笔者在查阅了网上关于“Public Key Retrieval is not allowed”错误的资料后，发现大多数网上关于该问题的博文对该问题的解释都存在一定的纰漏。首先需要明确的是出现该问题的时候，MySQL配置的密码认证插件为如下两种：
+sha256_passwordcaching_sha2_password
+值得注意的是，如果使用“mysql_native_password”密码认证插件，不会出现“Public Key Retrieval is not allowed”错误。MySQL配置的密码认证方式可以通过如下命令进行查看。
+
+针对上述错误，有如下的解决方案：
+
+
+在条件允许的情况下，不要禁用SSL/TLS协议，即不要在CLI客户端使用--ssl-mode=disabled，或在JDBC连接串中加入useSSL=false；如果必须禁用SSL/TLS协议，则可以尝试使用CLI客户端登录一次MySQL数据库制造登录缓存；如果必须禁用SSL/TLS协议，则可以通过增加如下参数允许客户端获得服务器的公钥：
+
+
+在JDBC连接串中加入allowPublicKeyRetrieval=true参数；在CLI客户端连接时加入--get-server-public-key参数；在CLI客户端连接时加入--server-public-key-path=file_name参数，指定存放在本地的公钥文件。
